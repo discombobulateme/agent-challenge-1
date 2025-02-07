@@ -1,149 +1,152 @@
-# Agent Starter
+# Bard AI Agent - OpenServ DevNet Challenge
 
-A starter project to help you get started with [OpenServ Labs SDK](https://github.com/openserv-labs/sdk) - a powerful TypeScript framework for building non-deterministic AI agents with advanced cognitive capabilities.
+This project is an AI-powered song generation agent created for the [OpenServ DevNet Challenge](https://platform.openserv.ai). Built on top of the [OpenServ Labs SDK](https://github.com/openserv-labs/sdk) and the agent-starter template, this agent can generate complete songs including lyrics, vocals, and instrumental music.
 
-This starter provides a minimal setup to help you understand the basics of the SDK. For more advanced features like tasks, file operations, and inter-agent collaboration, check out the [SDK documentation](https://github.com/openserv-labs/sdk).
+## Features
 
-## Before you start
+- 🎵 Generates original song lyrics using DeepSeek's language model
+- 🎤 Converts lyrics to vocals using Tacotron2 text-to-speech
+- 🎸 Creates instrumental music using Facebook's MusicGen
+- 🎼 Mixes vocals and music into a complete song using Web Audio API
+- 💾 Saves all components (lyrics, vocals, music, final mix) in organized directories
 
-### 1. Expose your local server
+## Models Used
 
-To allow OpenServ to access your agent locally, use a tunneling tool like [ngrok](https://ngrok.com/) or [localtunnel](https://github.com/localtunnel/localtunnel):
+- Lyrics: `deepseek-ai/DeepSeek-R1-Distill-Qwen-32B` - A distilled version of DeepSeek for efficient lyrics generation
+- Vocals: `speechbrain/tts-tacotron2-ljspeech` - Text-to-speech model for vocal synthesis
+- Music: `facebook/musicgen-small` - Compact model for instrumental music generation
 
-Example using ngrok:
+## Prerequisites
 
-```bash
-ngrok http 7378  # Replace 7378 with your actual PORT if different
-```
-
-Copy your tunneling tool URL (e.g., `https://your-name.ngrok-free.app`)
-
-A tunneling is a software utility that exposes a local server on your machine to the internet through a secure public URL, making it useful for testing webhooks, APIs, or services in a local development environment.
-
-
-### 2. Create an account on OpenServ
-
-1. Create a developer account on [OpenServ](https://platform.openserv.ai)
-
-### 2. Create an agent on OpenServ
-
-1. Create an agent: Developer -> Add Agent --> Add: Agent Name and Capabilities Description
-
-Agent Name: `My first AI Agent Test`
-Capabilities Description: `I perform basic arithmetic operations`
-
-2. Add Endpoint URL: set the agent's endpoint URL to your tunnelling URL (e.g. ngrok) --> Save
-3. Create an API key: Manage this agent --> Create secret key --> Copy secret key
-
-### 3. Create an OpenAI API key
-
-1. Create an account on [OpenAI](https://platform.openai.com/)
-2. Create an API key: API keys --> Create new secret key --> Copy key
+1. [Hugging Face API Token](https://huggingface.co/settings/tokens) with read access to the required models
+2. Node.js and npm installed
+3. Sufficient disk space for audio files (each song generates ~7-8MB of data)
 
 ## Setup
 
-1. Clone this repository
+1. Clone this repository:
 ```bash
-git clone https://github.com/openserv-labs/agent-starter.git
-cd agent-starter
+git clone <repository-url>
+cd <repository-name>
 ```
 
 2. Install dependencies:
-
 ```bash
 npm install
 ```
 
-3. Copy `.env.example` to `.env` and fill in your configuration:
-
+3. Create a `.env` file:
 ```bash
 cp .env.example .env
 ```
 
-4. Update the environment variables in `.env`:
-   - `OPENSERV_API_KEY`: Your OpenServ API key
-   - `PORT`: The port number for your agent's HTTP server (default: 7378)
-   - `OPENAI_API_KEY`: Your OpenAI API key
+4. Add your Hugging Face API token to `.env`:
+```
+HF_TOKEN=your_token_here
+PORT=7378
+```
 
-## Using with OpenServ Platform
+## Usage
 
-1. Start your agent locally using `npm run dev` or `npm start`
-2. Your agent is now ready to use on the platform!
+1. Start the agent:
+```bash
+npm run dev
+```
 
-## Example Agent
+2. The agent will start on port 7378 (configurable in `.env`)
 
-This agent-starter includes a simple example agent that can perform basic arithmetic:
-
+3. Send a song generation request:
 ```typescript
-// Example usage
 const response = await agent.process({
   messages: [
     {
       role: 'user',
-      content: 'add 13 and 29'
+      content: 'Write a rock song with an energetic mood about chasing dreams'
     }
   ]
 })
 ```
 
+4. Generated files will be saved in the `music-examples` directory, organized by song ID:
+```
+music-examples/
+  └── [song-id]/
+      ├── lyrics.txt    # Generated lyrics (~1KB)
+      ├── vocals.wav    # Vocal track (~2.2MB)
+      ├── music.wav     # Instrumental track (~2.1MB)
+      └── final-mix.wav # Combined song (~2.7MB)
+```
+
+## Configuration
+
+The agent's behavior can be customized through the following parameters:
+
+- `maxLength`: Maximum number of tokens for lyrics generation (default: 200)
+- `temperature`: Controls randomness in lyrics generation (default: 0.6)
+- `repetition_penalty`: Prevents repetitive lyrics (default: 1.1)
+- `top_p`: Controls diversity in text generation (default: 0.9)
+
+### Audio Mixing Configuration
+
+The final mix combines vocals and music with the following settings:
+- Vocals: 70% volume
+- Music: 30% volume
+- Format: 16-bit WAV
+- Sample Rate: Automatically matched between tracks
+- Channels: Supports both mono and stereo
+
 ## Development
 
-Run the development server with hot reload:
-
+- Run in development mode with hot reload:
 ```bash
 npm run dev
 ```
 
-## How to test the agent on OpenServ Platform
-
-1. Go to the OpenServ Platform
-2. Create a new Project: Projects -> Create a new project
-3. Add Project Name and Project Goal and Instructions
-4. Add Agent: Search for your agent name and add it to the project
-5. Run the project
-6. Verify if the agent response is equivalent to what you expect
-
-## Code Quality
-
-The project uses ESLint and Prettier for code quality and formatting:
-
+- Format code:
 ```bash
-# Run ESLint
-npm run lint
-
-# Fix ESLint issues
-npm run lint:fix
-
-# Format code with Prettier
 npm run format
 ```
 
-## Building
-
-Build the project:
-
+- Lint code:
 ```bash
-npm run build
+npm run lint
 ```
 
-Run the built version:
+## Project Structure
 
-```bash
-npm start
+```
+src/
+├── bard-agent.ts         # Main agent implementation
+├── index.ts             # Entry point
+└── services/
+    ├── lyrics-service.ts # Lyrics generation using DeepSeek
+    ├── vocals-service.ts # Text-to-speech using Tacotron2
+    ├── music-service.ts  # Music generation and audio mixing
+    └── file-service.ts   # File management and organization
 ```
 
-## Notes
+## Technical Details
 
-- The project is set up with TypeScript, ts-node-dev for development, and includes VS Code debugging configuration
-- Environment variables are validated using Zod
-- ESLint and Prettier are configured for consistent code style
-- The agent uses natural language processing to understand and execute commands
+### Audio Processing
+- Uses Web Audio API for high-quality audio processing
+- Proper WAV header generation for compatibility
+- Automatic sample rate and channel matching
+- Buffer-based audio mixing for memory efficiency
 
-## Next Steps
+### Error Handling
+- Graceful degradation if any generation step fails
+- Saves successfully generated components even if mixing fails
+- Detailed error reporting for troubleshooting
 
-Once you're comfortable with the basics, explore more advanced features in the [OpenServ Labs SDK](https://github.com/openserv-labs/sdk):
-- Tasks and workflows
-- Chat interactions
-- File operations
-- Custom capabilities
-- Inter-agent collaboration
+## Credits
+
+- Built with [OpenServ Labs SDK](https://github.com/openserv-labs/sdk)
+- Uses [Hugging Face](https://huggingface.co/) models:
+  - [DeepSeek](https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-32B)
+  - [Tacotron2](https://huggingface.co/speechbrain/tts-tacotron2-ljspeech)
+  - [MusicGen](https://huggingface.co/facebook/musicgen-small)
+- Audio processing with [node-web-audio-api](https://www.npmjs.com/package/node-web-audio-api)
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details
