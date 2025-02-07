@@ -1,39 +1,26 @@
-import { z } from 'zod'
-import { Agent } from '@openserv-labs/sdk'
 import 'dotenv/config'
+import { BardAgent } from './bard-agent'
 
-// Create the agent
-const agent = new Agent({
-  systemPrompt: 'You are an agent that sums two numbers'
-})
-
-// Add sum capability
-agent.addCapability({
-  name: 'sum',
-  description: 'Sums two numbers',
-  schema: z.object({
-    a: z.number(),
-    b: z.number()
-  }),
-  async run({ args }) {
-    return `${args.a} + ${args.b} = ${args.a + args.b}`
-  }
-})
-
-// Start the agent's HTTP server
+// Create and start the Bard agent
+const agent = new BardAgent()
 agent.start()
 
+// Example usage
 async function main() {
-  const sum = await agent.process({
-    messages: [
-      {
-        role: 'user',
-        content: 'add 13 and 29'
-      }
-    ]
-  })
+  try {
+    const response = await agent.process({
+      messages: [
+        {
+          role: 'user',
+          content: 'Write a rock song with an energetic mood about chasing dreams'
+        }
+      ]
+    })
 
-  console.log('Sum:', sum.choices[0].message.content)
+    console.log('Generated Song:', response.choices[0].message.content)
+  } catch (error) {
+    console.error('Error:', error)
+  }
 }
 
 main().catch(console.error)
